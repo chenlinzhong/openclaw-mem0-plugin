@@ -35,7 +35,7 @@ Use the managed Mem0 Cloud service.
 
 ```json
 // plugins.entries
-"openclaw-mem0": {
+"openclaw-mem0-plugin": {
     "enabled": true,
     "config": {
         "mode": "platform",

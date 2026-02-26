@@ -23,7 +23,7 @@ Mem0 integration for OpenClaw. Adds intelligent long-term memory to your agents,
 {
   "plugins": {
     "entries": {
-      "openclaw-mem0": {
+      "openclaw-mem0-plugin": {
         "enabled": true,
         "config": {
           "mode": "platform",
@@ -45,7 +45,7 @@ Connect to your own Mem0 instance (requires `mem0ai` package installed):
 {
   "plugins": {
     "entries": {
-      "openclaw-mem0": {
+      "openclaw-mem0-plugin": {
         "enabled": true,
         "config": {
           "mode": "open-source",
@@ -98,7 +98,7 @@ The agent can proactively call these tools:
 ## Plugin structure
 
 ```
-openclaw-mem0/
+openclaw-mem0-plugin/
   package.json            # NPM package config (@xray2016/openclaw-mem0-plugin)
   index.ts                # Plugin implementation & tools
   lib/                    # Internal Mem0 client implementation

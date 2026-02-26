@@ -508,10 +508,10 @@ function assertAllowedKeys(
 const mem0ConfigSchema = {
   parse(value: unknown): Mem0Config {
     if (!value || typeof value !== "object" || Array.isArray(value)) {
-      throw new Error("openclaw-mem0 config required");
+      throw new Error("openclaw-mem0-plugin config required");
     }
     const cfg = value as Record<string, unknown>;
-    assertAllowedKeys(cfg, ALLOWED_KEYS, "openclaw-mem0 config");
+    assertAllowedKeys(cfg, ALLOWED_KEYS, "openclaw-mem0-plugin config");
 
     // Accept both "open-source" and legacy "oss" as open-source mode; everything else is platform
     const mode: Mem0Mode =
@@ -601,7 +601,7 @@ function categoriesToArray(
 // ============================================================================
 
 const memoryPlugin = {
-  id: "openclaw-mem0",
+  id: "openclaw-mem0-plugin",
   name: "Memory (Mem0)",
   description:
     "Mem0 memory backend — Mem0 platform or self-hosted open-source",
@@ -616,7 +616,7 @@ const memoryPlugin = {
     let currentSessionId: string | undefined;
 
     api.logger.info(
-      `openclaw-mem0: registered (mode: ${cfg.mode}, user: ${cfg.userId}, graph: ${cfg.enableGraph}, autoRecall: ${cfg.autoRecall}, autoCapture: ${cfg.autoCapture})`,
+      `openclaw-mem0-plugin: registered (mode: ${cfg.mode}, user: ${cfg.userId}, graph: ${cfg.enableGraph}, autoRecall: ${cfg.autoRecall}, autoCapture: ${cfg.autoCapture})`,
     );
 
     // Helper: build add options
@@ -1278,14 +1278,14 @@ const memoryPlugin = {
 
           const totalCount = longTermResults.length + uniqueSessionResults.length;
           api.logger.info(
-            `openclaw-mem0: injecting ${totalCount} memories into context (${longTermResults.length} long-term, ${uniqueSessionResults.length} session)`,
+            `openclaw-mem0-plugin: injecting ${totalCount} memories into context (${longTermResults.length} long-term, ${uniqueSessionResults.length} session)`,
           );
 
           return {
             systemPrompt: `<relevant-memories>\nThe following memories may be relevant to this conversation:\n${memoryContext}\n</relevant-memories>`,
           };
         } catch (err) {
-          api.logger.warn(`openclaw-mem0: recall failed: ${String(err)}`);
+          api.logger.warn(`openclaw-mem0-plugin: recall failed: ${String(err)}`);
         }
       });
     }
@@ -1359,11 +1359,11 @@ const memoryPlugin = {
           const capturedCount = result.results?.length ?? 0;
           if (capturedCount > 0) {
             api.logger.info(
-              `openclaw-mem0: auto-captured ${capturedCount} memories`,
+              `openclaw-mem0-plugin: auto-captured ${capturedCount} memories`,
             );
           }
         } catch (err) {
-          api.logger.warn(`openclaw-mem0: capture failed: ${String(err)}`);
+          api.logger.warn(`openclaw-mem0-plugin: capture failed: ${String(err)}`);
         }
       });
     }
@@ -1373,14 +1373,14 @@ const memoryPlugin = {
     // ========================================================================
 
     api.registerService({
-      id: "openclaw-mem0",
+      id: "openclaw-mem0-plugin",
       start: () => {
         api.logger.info(
-          `openclaw-mem0: initialized (mode: ${cfg.mode}, user: ${cfg.userId}, autoRecall: ${cfg.autoRecall}, autoCapture: ${cfg.autoCapture})`,
+          `openclaw-mem0-plugin: initialized (mode: ${cfg.mode}, user: ${cfg.userId}, autoRecall: ${cfg.autoRecall}, autoCapture: ${cfg.autoCapture})`,
         );
       },
       stop: () => {
-        api.logger.info("openclaw-mem0: stopped");
+        api.logger.info("openclaw-mem0-plugin: stopped");
       },
     });
   },

@@ -32,7 +32,7 @@ openclaw plugins install @xray2016/openclaw-mem0-plugin
 使用托管的 Mem0 云服务。
 
 ```json
-"openclaw-mem0": {
+"openclaw-mem0-plugin": {
   "enabled": true,
   "config": {
     "mode": "platform",
@@ -52,7 +52,7 @@ openclaw plugins install @xray2016/openclaw-mem0-plugin
 **注意**：要使用开源模式，您必须在 OpenClaw 环境中手动安装 `mem0ai` 包，因为为了保持核心轻量化，本插件不再内置该依赖。
 
 ```json
-"openclaw-mem0": {
+"openclaw-mem0-plugin": {
   "enabled": true,
   "config": {
     "mode": "open-source",
