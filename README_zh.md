@@ -20,7 +20,7 @@
 通过 OpenClaw CLI 安装（npm 源）：
 
 ```bash
-openclaw plugins install @xray2016/openclaw-mem0
+openclaw plugins install @xray2016/openclaw-mem0-plugin
 ```
 
 ## 配置
@@ -36,7 +36,8 @@ openclaw plugins install @xray2016/openclaw-mem0
   "enabled": true,
   "config": {
     "mode": "platform",
-    "apiKey": "${MEM0_API_KEY}", // 请在 .env 文件中设置
+    "apiKey": "your-mem0-api-key", 
+    "host": "mem0-platform-host",
     "userId": "default-user",
     "autoRecall": true,
     "autoCapture": true

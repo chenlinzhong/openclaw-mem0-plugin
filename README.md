@@ -22,7 +22,7 @@ This is a OpenClaw plugin that integrates with [Mem0](https://github.com/mem0ai/
 Install via OpenClaw CLI (npm registry):
 
 ```bash
-openclaw plugins install @xray2016/openclaw-mem0
+openclaw plugins install @xray2016/openclaw-mem0-plugin
 ```
 
 ## Configuration
@@ -39,9 +39,9 @@ Use the managed Mem0 Cloud service.
     "enabled": true,
     "config": {
         "mode": "platform",
-        "apiKey": "${MEM0_API_KEY}",
+        "apiKey": "your-mem0-api-key",
         "userId": "openclaw-user",
-        "host": "${MEM0_HOST}"
+        "host": "mem0-platform-host"
     }
 }
 ```

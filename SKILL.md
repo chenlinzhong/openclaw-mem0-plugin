@@ -14,7 +14,10 @@ Mem0 integration for OpenClaw. Adds intelligent long-term memory to your agents,
 ### Platform Mode (Recommended)
 
 1. Get a free API key at [mem0.ai](https://mem0.ai)
-2. Add to your OpenClaw config:
+2. Set environment variables (optional but recommended):
+   - `MEM0_API_KEY`: Your Mem0 API Key
+   - `MEM0_HOST`: Your Mem0 Host (optional)
+3. Add to your OpenClaw config:
 
 ```json
 {
@@ -24,6 +27,7 @@ Mem0 integration for OpenClaw. Adds intelligent long-term memory to your agents,
         "enabled": true,
         "config": {
           "mode": "platform",
+          "host": "mem0-platform-host",
           "apiKey": "your-mem0-api-key",
           "userId": "default-user"
         }
@@ -95,7 +99,7 @@ The agent can proactively call these tools:
 
 ```
 openclaw-mem0/
-  package.json            # NPM package config (@xray2016/openclaw-mem0)
+  package.json            # NPM package config (@xray2016/openclaw-mem0-plugin)
   index.ts                # Plugin implementation & tools
   lib/                    # Internal Mem0 client implementation
   SKILL.md                # This file
