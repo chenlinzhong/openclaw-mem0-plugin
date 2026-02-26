@@ -814,12 +814,14 @@ const memoryPlugin = {
 
           try {
             const runId = !longTerm && currentSessionId ? currentSessionId : undefined;
+            const uid = userId || cfg.userId;
+            
             api.logger.info(
-              `openclaw-mem0-plugin: memory_store: userId=${userId}, runId=${runId}, content=${text}`,
+              `openclaw-mem0-plugin: memory_store: userId=${uid}, runId=${runId}, content=${text}`,
             );
             const result = await provider.add(
               [{ role: "user", content: text }],
-              buildAddOptions(userId, runId),
+              buildAddOptions(uid, runId),
             );
 
             const added =
@@ -1355,7 +1357,7 @@ const memoryPlugin = {
 
           const addOpts = buildAddOptions(undefined, currentSessionId);
           api.logger.info(
-            `openclaw-mem0-plugin: memory_store: userId=${addOpts.user_id}, runId=${addOpts.run_id}, content=${formattedMessages}`,
+            `openclaw-mem0-plugin: auto-capturing: userId=${addOpts.user_id}, runId=${addOpts.run_id}, content=${formattedMessages}`,
           );
           const result = await provider.add(
             formattedMessages,
