@@ -32,15 +32,25 @@ openclaw plugins install @chenlinzhong/openclaw-mem0-plugin
 使用托管的 Mem0 云服务。
 
 ```json
-"openclaw-mem0-plugin": {
-  "enabled": true,
-  "config": {
-    "mode": "platform",
-    "apiKey": "your-mem0-api-key", 
-    "host": "mem0-platform-host",
-    "userId": "default-user",
-    "autoRecall": true,
-    "autoCapture": true
+{
+"plugins": {
+    "allow": [
+      "openclaw-mem0-plugin"
+    ],
+    "slots": {
+      "memory": "openclaw-mem0-plugin"
+    },
+    "entries": {
+      "openclaw-mem0-plugin": {
+        "enabled": true,
+        "config": {
+          "mode": "platform",
+          "apiKey": "<your-mem0-api-key>",
+          "userId": "openclaw-user",
+          "host": "<your-mem0-platform-host>"
+        }
+      }
+    }
   }
 }
 ```

@@ -34,15 +34,26 @@ You can configure the plugin in your `~/.openclaw/openclaw.json`, the apikey and
 Use the managed Mem0 Cloud service.
 
 ```json
-// plugins.entries
-"openclaw-mem0-plugin": {
-    "enabled": true,
-    "config": {
-        "mode": "platform",
-        "apiKey": "your-mem0-api-key",
-        "userId": "openclaw-user",
-        "host": "mem0-platform-host"
+{
+"plugins": {
+    "allow": [
+      "openclaw-mem0-plugin"
+    ],
+    "slots": {
+      "memory": "openclaw-mem0-plugin"
+    },
+    "entries": {
+      "openclaw-mem0-plugin": {
+        "enabled": true,
+        "config": {
+          "mode": "platform",
+          "apiKey": "<your-mem0-api-key>",
+          "userId": "openclaw-user",
+          "host": "<your-mem0-platform-host>"
+        }
+      }
     }
+  }
 }
 ```
 
