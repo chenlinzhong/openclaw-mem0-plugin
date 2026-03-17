@@ -24,6 +24,11 @@
       "placeholder": "default",
       "help": "User ID for scoping memories"
     },
+    "agentId": {
+      "label": "Agent ID",
+      "placeholder": "agent-...",
+      "help": "Agent ID for scoping memories"
+    },
     "orgId": {
       "label": "Organization ID",
       "placeholder": "org-...",
@@ -96,6 +101,9 @@
         "type": "string"
       },
       "userId": {
+        "type": "string"
+      },
+      "agentId": {
         "type": "string"
       },
       "orgId": {

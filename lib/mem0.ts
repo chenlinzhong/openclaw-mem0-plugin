@@ -162,6 +162,9 @@ export class MemoryClient {
         body: JSON.stringify(payload)
       }
     );
+    console.log(
+      `openclaw-mem0-plugin: add memory request user:${payload.user_id}, runId:${payload.run_id}, agentId:${payload.agent_id}, messages:${payload.messages.length}, event_id:${response?.results[0]?.event_id}`
+    );
     return response;
   }
 

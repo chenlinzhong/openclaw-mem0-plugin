@@ -47,10 +47,12 @@ type Mem0Config = {
   autoRecall: boolean;
   searchThreshold: number;
   topK: number;
+  agentId?: string;
 };
 
 // Unified types for the provider interface
 interface AddOptions {
+  agent_id?: string;
   user_id: string;
   run_id?: string;
   custom_instructions?: string;
@@ -60,6 +62,7 @@ interface AddOptions {
 }
 
 interface SearchOptions {
+  agent_id?: string;
   user_id: string;
   run_id?: string;
   top_k?: number;
@@ -111,6 +114,20 @@ interface Mem0Provider {
   delete(memoryId: string): Promise<void>;
 }
 
+function extract_only_user_input(message: string): string {
+  let query = message.trim();
+  // Try to extract content after message_id line
+  const messageIdMatch = query.match(/\[message_id: [^\]]+\]\s*(.*)/s);
+  if (messageIdMatch && messageIdMatch[1]) {
+    query = messageIdMatch[1].trim();
+    // Extract content after the first colon (if present)
+    if (query.includes(':')) {
+      query = query.split(':')[1].trim();
+    }
+  }
+  return query;
+}
+
 // ============================================================================
 // Platform Provider (Mem0 Cloud)
 // ============================================================================
@@ -155,6 +172,7 @@ class PlatformProvider implements Mem0Provider {
       opts.custom_categories = options.custom_categories;
     if (options.enable_graph) opts.enable_graph = options.enable_graph;
     if (options.output_format) opts.output_format = options.output_format;
+    if (options.agent_id) opts.agent_id = options.agent_id;
 
     const result = await this.client.add(messages, opts);
     return normalizeAddResult(result);
@@ -168,6 +186,7 @@ class PlatformProvider implements Mem0Provider {
     if (options.threshold != null) opts.threshold = options.threshold;
     if (options.keyword_search != null) opts.keyword_search = options.keyword_search;
     if (options.reranking != null) opts.reranking = options.reranking;
+    if (options.agent_id) opts.agent_id = options.agent_id;
 
     const results = await this.client.search(query, opts);
     return normalizeSearchResults(results);
@@ -493,6 +512,7 @@ const ALLOWED_KEYS = [
   "searchThreshold",
   "topK",
   "oss",
+  "agentId",
 ];
 
 function assertAllowedKeys(
@@ -538,6 +558,7 @@ const mem0ConfigSchema = {
       mode,
       apiKey:
         typeof cfg.apiKey === "string" ? resolveEnvVars(cfg.apiKey) : undefined,
+      agentId: typeof cfg.agentId === "string" ? cfg.agentId : undefined,
       userId:
         typeof cfg.userId === "string" && cfg.userId ? cfg.userId : "default",
       orgId: typeof cfg.orgId === "string" ? cfg.orgId : undefined,
@@ -563,7 +584,7 @@ const mem0ConfigSchema = {
     searchThreshold:
         typeof cfg.searchThreshold === "number" ? cfg.searchThreshold : 0.5,
       topK: typeof cfg.topK === "number" ? cfg.topK : 5,
-      oss: ossConfig,
+      oss: ossConfig
     };
   },
 };
@@ -609,6 +630,7 @@ const memoryPlugin = {
   configSchema: mem0ConfigSchema,
 
   register(api: OpenClawPluginApi) {
+
     const cfg = mem0ConfigSchema.parse(api.pluginConfig);
     const provider = createProvider(cfg, api);
 
@@ -620,10 +642,15 @@ const memoryPlugin = {
     );
 
     // Helper: build add options
-    function buildAddOptions(userIdOverride?: string, runId?: string): AddOptions {
+    function buildAddOptions(userIdOverride?: string, runId?: string, agentId?: string): AddOptions {
       const opts: AddOptions = {
         user_id: userIdOverride || cfg.userId,
       };
+      if (cfg.agentId) {
+        opts.agent_id = cfg.agentId;
+      } else {
+        opts.agent_id = agentId;
+      }
       if (runId) opts.run_id = runId;
       if (cfg.mode === "platform") {
         opts.custom_instructions = cfg.customInstructions;
@@ -639,6 +666,7 @@ const memoryPlugin = {
       userIdOverride?: string,
       limit?: number,
       runId?: string,
+      agentId?: string,
     ): SearchOptions {
       const opts: SearchOptions = {
         user_id: userIdOverride || cfg.userId,
@@ -648,6 +676,11 @@ const memoryPlugin = {
         keyword_search: true,
         reranking: true,
       };
+      if (cfg.agentId) {
+        opts.agent_id = cfg.agentId;
+      } else {
+        opts.agent_id = agentId;
+      }
       if (runId) opts.run_id = runId;
       return opts;
     }
@@ -811,7 +844,6 @@ const memoryPlugin = {
             metadata?: Record<string, unknown>;
             longTerm?: boolean;
           };
-
           try {
             const runId = !longTerm && currentSessionId ? currentSessionId : undefined;
             const uid = userId || cfg.userId;
@@ -1234,23 +1266,32 @@ const memoryPlugin = {
     if (cfg.autoRecall) {
       api.on("before_agent_start", async (event, ctx) => {
         if (!event.prompt || event.prompt.length < 5) return;
-
         // Track session ID
         const sessionId = (ctx as any)?.sessionKey ?? undefined;
+        const agentId =ctx.agentId
+
         if (sessionId) currentSessionId = sessionId;
 
         try {
           // Search long-term memories (user-scoped)
+          const longTermOptions = buildSearchOptions(undefined, undefined, undefined, agentId);
+          const start = Date.now();
+          var query = event.prompt.trim();
+          query = extract_only_user_input(query);
           const longTermResults = await provider.search(
-            event.prompt,
-            buildSearchOptions(),
+            query,
+            longTermOptions,
+          );
+          const cost = Date.now() - start;
+          api.logger.info(
+            `openclaw-mem0-plugin: search user memories: cost=${cost}ms, userId=${longTermOptions.user_id}, runId=${longTermOptions.run_id}, agentId=${longTermOptions.agent_id}, query=${query}, results=${longTermResults.length}, memories=${JSON.stringify(longTermResults.map((r) => ({ id: r.id, memory: r.memory, score: r.score })))}`,
           );
 
           // Search session memories (session-scoped) if we have a session ID
           let sessionResults: MemoryItem[] = [];
           if (currentSessionId) {
             sessionResults = await provider.search(
-              event.prompt,
+              query,
               buildSearchOptions(undefined, undefined, currentSessionId),
             );
           }
@@ -1282,12 +1323,12 @@ const memoryPlugin = {
           }
 
           const totalCount = longTermResults.length + uniqueSessionResults.length;
+          var memoryContextPrompt = `<relevant-memories>\nThe following memories may be relevant to this conversation:\n${memoryContext}\n</relevant-memories>`
           api.logger.info(
-            `openclaw-mem0-plugin: injecting ${totalCount} memories into context (${longTermResults.length} long-term, ${uniqueSessionResults.length} session)`,
+            `openclaw-mem0-plugin: injecting ${totalCount} memories into context (${longTermResults.length} long-term, ${uniqueSessionResults.length} session), memoryContextPrompt=${memoryContextPrompt}`,
           );
-
           return {
-            systemPrompt: `<relevant-memories>\nThe following memories may be relevant to this conversation:\n${memoryContext}\n</relevant-memories> `,
+            systemPrompt: memoryContextPrompt,
           };
         } catch (err) {
           api.logger.warn(`openclaw-mem0-plugin: recall failed: ${String(err)}`);
@@ -1301,6 +1342,8 @@ const memoryPlugin = {
         if (!event.success || !event.messages || event.messages.length === 0) {
           return;
         }
+
+        const agentId = (ctx as any)?.agentId ?? undefined;
 
         // Track session ID
         const sessionId = (ctx as any)?.sessionKey ?? undefined;
@@ -1346,7 +1389,7 @@ const memoryPlugin = {
             if (!textContent) continue;
             // Skip injected memory context
             if (textContent.includes("<relevant-memories>")) continue;
-
+            textContent = extract_only_user_input(textContent);
             formattedMessages.push({
               role: role as string,
               content: textContent,
@@ -1355,19 +1398,20 @@ const memoryPlugin = {
 
           if (formattedMessages.length === 0) return;
 
-          const addOpts = buildAddOptions(undefined, currentSessionId);
-          api.logger.info(
-            `openclaw-mem0-plugin: auto-capturing: userId=${addOpts.user_id}, runId=${addOpts.run_id}, content=${formattedMessages}`,
-          );
+          const addOpts = buildAddOptions(undefined, currentSessionId, agentId);
+          const start = Date.now();
           const result = await provider.add(
             formattedMessages,
             addOpts,
           );
-
+          const cost = Date.now() - start;
+          api.logger.info(
+            `openclaw-mem0-plugin: add memory cost=${cost}ms, userId=${addOpts.user_id}, runId=${addOpts.run_id}, content=${formattedMessages.length}, agentId=${addOpts.agent_id}`,
+          );
           const capturedCount = result.results?.length ?? 0;
           if (capturedCount > 0) {
             api.logger.info(
-              `openclaw-mem0-plugin: auto-captured ${capturedCount} memories`,
+              `openclaw-mem0-plugin: add ${capturedCount} memories`,
             );
           }
         } catch (err) {
@@ -1384,7 +1428,7 @@ const memoryPlugin = {
       id: "openclaw-mem0-plugin",
       start: () => {
         api.logger.info(
-          `openclaw-mem0-plugin: initialized (mode: ${cfg.mode}, user: ${cfg.userId}, autoRecall: ${cfg.autoRecall}, autoCapture: ${cfg.autoCapture})`,
+          `openclaw-mem0-plugin: initialized (host: ${cfg.host}, mode: ${cfg.mode}, user: ${cfg.userId}, autoRecall: ${cfg.autoRecall}, autoCapture: ${cfg.autoCapture}), agentId=${cfg.agentId}`,
         );
       },
       stop: () => {
