@@ -74,7 +74,7 @@ The agent can proactively call these tools:
 
 ```
 openclaw-mem0-plugin/
-  package.json            # NPM package config (@xray2016/openclaw-mem0-plugin)
+  package.json            # NPM package config (@chenlinzhong/openclaw-mem0-plugin)
   index.ts                # Plugin implementation & tools
   lib/                    # Internal Mem0 client implementation
   SKILL.md                # This file
