@@ -13,7 +13,7 @@ Mem0 integration for OpenClaw. Adds intelligent long-term memory to your agents,
 
 ### Platform Mode (Recommended)
 
-1. Get a free API key at [mem0.ai](https://mem0.ai)
+1. Get a free API key at [火山引擎mem0记忆库](https://console.volcengine.com/mem0)
 2. Set environment variables (optional but recommended):
    - `MEM0_API_KEY`: Your Mem0 API Key
    - `MEM0_HOST`: Your Mem0 Host (optional)
@@ -22,42 +22,17 @@ Mem0 integration for OpenClaw. Adds intelligent long-term memory to your agents,
 ```json
 {
   "plugins": {
+    "slots": {
+      "memory": "openclaw-mem0-plugin"
+    },
     "entries": {
       "openclaw-mem0-plugin": {
         "enabled": true,
         "config": {
           "mode": "platform",
-          "host": "mem0-platform-host",
-          "apiKey": "your-mem0-api-key",
-          "userId": "default-user"
-        }
-      }
-    }
-  }
-}
-```
-
-### Open-Source Mode (Self-Hosted)
-
-Connect to your own Mem0 instance (requires `mem0ai` package installed):
-
-```json
-{
-  "plugins": {
-    "entries": {
-      "openclaw-mem0-plugin": {
-        "enabled": true,
-        "config": {
-          "mode": "open-source",
-          "oss": {
-            "vectorStore": {
-              "provider": "chroma",
-              "config": {
-                "collectionName": "memories",
-                "path": "./chroma_db"
-              }
-            }
-          }
+          "host": "<mem0-platform-host>",
+          "apiKey": "<your-mem0-api-key>",
+          "userId": "default"
         }
       }
     }
@@ -108,4 +83,4 @@ openclaw-mem0-plugin/
 
 ## Author
 
-Maintained by @xRay2016. Modified from the original Mem0 OpenClaw integration.
+Maintained by @chenlinzhong. Modified from the original Mem0 OpenClaw integration.

@@ -114,20 +114,6 @@ interface Mem0Provider {
   delete(memoryId: string): Promise<void>;
 }
 
-function extract_only_user_input(message: string): string {
-  let query = message.trim();
-  // Try to extract content after message_id line
-  const messageIdMatch = query.match(/\[message_id: [^\]]+\]\s*(.*)/s);
-  if (messageIdMatch && messageIdMatch[1]) {
-    query = messageIdMatch[1].trim();
-    // Extract content after the first colon (if present)
-    if (query.includes(':')) {
-      query = query.split(':')[1].trim();
-    }
-  }
-  return query;
-}
-
 // ============================================================================
 // Platform Provider (Mem0 Cloud)
 // ============================================================================
@@ -1277,7 +1263,6 @@ const memoryPlugin = {
           const longTermOptions = buildSearchOptions(undefined, undefined, undefined, agentId);
           const start = Date.now();
           var query = event.prompt.trim();
-          query = extract_only_user_input(query);
           const longTermResults = await provider.search(
             query,
             longTermOptions,
@@ -1342,7 +1327,7 @@ const memoryPlugin = {
         if (!event.success || !event.messages || event.messages.length === 0) {
           return;
         }
-
+        
         const agentId = (ctx as any)?.agentId ?? undefined;
 
         // Track session ID
@@ -1389,7 +1374,6 @@ const memoryPlugin = {
             if (!textContent) continue;
             // Skip injected memory context
             if (textContent.includes("<relevant-memories>")) continue;
-            textContent = extract_only_user_input(textContent);
             formattedMessages.push({
               role: role as string,
               content: textContent,
